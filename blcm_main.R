@@ -12,7 +12,7 @@ testjags()
 # Directory
 
 # Model
-source("blcm_2test_mpop_prior_III.R")
+source("covid_r1_dep_III.R")
 #other choice: blcm_2test_mpop_prior_I.R
 #other choice: blcm_2test_mpop_prior_II.R
 #other choice: blcm_2test_mpop_prior_III.R
@@ -26,21 +26,21 @@ library(readxl)
 df <- read_excel('data.xls')
 
 df2 <- df %>%
-  filter(Week %in% 1, #other choices: 2, 3
-         Ab %in% "IgG/M") %>% #other choices: IgM, IgG, IgG/M
-  select(Author, `PCR+/Ab+`, `PCR+/Ab-`, `PCR-/Ab+`, `PCR-/Ab-`) %>%
-  group_by(Author) %>%
+  filter(Ab %in% "IgGM") %>% #other choices: IgM, IgG, IgG/M
+  select(Week, Author, `PCR+/Ab+`, `PCR+/Ab-`, `PCR-/Ab+`, `PCR-/Ab-`) %>%
+  group_by(Week, Author) %>%
   summarise_all(funs(sum)) 
 
 df2
 
 y <- df2 %>%
+  ungroup() %>%
   select(`PCR+/Ab+`, `PCR+/Ab-`, `PCR-/Ab+`, `PCR-/Ab-`) %>%
   as.matrix()
 
 y
 
-m = dim(y)[1]
+m = length(unique(df$Author))
 n = apply(y, 1, sum)
 
 
@@ -59,8 +59,5 @@ results <- run.jags(model,
                     n.chains = 3,
                     inits=list(inits1, inits2, inits3),
                     burnin = 10000,
-                    sample = 110000)
+                    sample = 60000)
 print(results)
-
-write.csv(summary(results),file=paste("blcm_2test_mpop_prior_III.R","week 1", ".csv"))
-
